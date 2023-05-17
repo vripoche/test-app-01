@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 
 type Order = {
 	id?: number | null;
@@ -21,6 +22,7 @@ export default function Order() {
 					},
 				}
 			);
+
 			const {
 				data: [
 					{
@@ -32,7 +34,6 @@ export default function Order() {
 				] = [],
 			} = (await response.json()) || {};
 			const trackers = fulfillments?.data?.[0]?.trackers?.data || [];
-			console.log(trackers);
 			setOrder({
 				id,
 				firstname,
@@ -51,7 +52,13 @@ export default function Order() {
 			<li>{order.id}</li>
 			<li>{order.firstname}</li>
 			<li>{order.lastname}</li>
-			<li>{order.trackers?.join(" | ")}</li>
+			<li>
+				{order.trackers?.map((item) => (
+					<NavLink key={item} to={`/tracker/${item}`}>
+						{item}
+					</NavLink>
+				))}
+			</li>
 		</ul>
 	);
 }
