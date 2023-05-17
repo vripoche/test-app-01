@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 
+type Order = {
+	id?: number | null;
+	firstname?: string;
+	lastname?: string;
+	trackers?: string[];
+};
+
 export default function Order() {
-	const [order, setOrder] = useState<string>("");
+	const [order, setOrder] = useState<Order>({});
 
 	useEffect(() => {
 		async function run() {
 			const response = await fetch(
-				"https://api.shipup.co/v2/orders?order_number=UK1876YH08_2",
+				"https://api.shipup.co/v2/orders?expand[]=fulfillments.trackers.line_items&order_number=UK1876YH08_2",
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -14,11 +21,37 @@ export default function Order() {
 					},
 				}
 			);
-			const data = await response.json();
-			setOrder(JSON.stringify(data));
+			const {
+				data: [
+					{
+						id = null,
+						first_name: firstname = "",
+						last_name: lastname = "",
+						fulfillments = {},
+					} = {},
+				] = [],
+			} = (await response.json()) || {};
+			const trackers = fulfillments?.data?.[0]?.trackers?.data || [];
+			console.log(trackers);
+			setOrder({
+				id,
+				firstname,
+				lastname,
+				trackers: trackers.map(
+					({ tracking_number: tracking }: { tracking_number: number }) =>
+						tracking
+				),
+			});
 		}
 		run();
 	}, []);
 
-	return <>{order}</>;
+	return (
+		<ul>
+			<li>{order.id}</li>
+			<li>{order.firstname}</li>
+			<li>{order.lastname}</li>
+			<li>{order.trackers?.join(" | ")}</li>
+		</ul>
+	);
 }
